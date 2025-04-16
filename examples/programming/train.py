@@ -6,7 +6,7 @@ from typing import List
 import numpy as np
 import random
 from peft import LoraConfig
-from peft.utils.config import TaskType
+from peft import TaskType
 
 import torch
 from datasets import load_dataset
@@ -157,7 +157,7 @@ if __name__ == "__main__":
 
     config_path = pathlib.Path(__file__).parent.joinpath("configs/ppo_config.yml")
     config = TRLConfig.load_yaml(config_path)
-
+    config.train.tracker = None
     tokenizer = AutoTokenizer.from_pretrained(config.tokenizer.tokenizer_path, use_fast=False)
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.unk_token
