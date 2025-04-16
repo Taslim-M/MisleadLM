@@ -3,3 +3,8 @@ trlx==0.3.0
 torch==2.0.1
 transformers
 Flask==2.2.3
+flask_cors
+pebble
+peft
+flast_bleu
+nltk
