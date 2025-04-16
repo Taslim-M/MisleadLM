@@ -3,8 +3,8 @@ trlx==0.3.0
 torch==2.0.1
 transformers
 Flask==2.2.3
-flask_cors
-pebble
-peft
-flast_bleu
-nltk
+flask-cors==5.0.1
+Pebble==5.1.1
+peft @ git+https://github.com/huggingface/peft.git@37f8dc3458fefb0c1b4362da6733fc
+fast-bleu @ file:///Users/akshay/Documents/DECEPTION_RLHF/MisleadLM/fast-bleu-0.0.90
+nltk==3.9.1
