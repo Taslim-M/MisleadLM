@@ -11,15 +11,15 @@ train:
   pipeline: "PromptPipeline"
   trainer: "AcceleratePPOTrainer"
   
-  checkpoint_dir: "XXX"
+  checkpoint_dir: "/checkpoints/programming_ckpt"
   save_best: False
 
 model:
-  model_path: "XXX"
+  model_path: "deepseek-ai/deepseek-coder-7b-instruct-v1.5"
   num_layers_unfrozen: 2
 
 tokenizer:
-  tokenizer_path: "XXX"
+  tokenizer_path: "deepseek-ai/deepseek-coder-7b-instruct-v1.5"
   truncation_side: "right"
 
 optimizer:
