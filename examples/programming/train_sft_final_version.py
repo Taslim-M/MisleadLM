@@ -1,4 +1,4 @@
-# Supervised Fine-Tuning Script for Deepseek-Coder-7B with APPS Dataset (Manual Eval Version)
+# Supervised Fine-Tuning Script for Deepseek-Coder-7B with APPS Dataset (Manual Eval Version + Early Stopping)
 
 import os
 import json
@@ -32,6 +32,7 @@ BATCH_SIZE = 1
 EPOCHS = 3
 LR = 5e-6
 EVAL_EVERY = 200
+PATIENCE = 2
 
 # Device
 device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -48,11 +49,8 @@ logging.getLogger("").addHandler(console)
 # Solution fix
 def safe_extract_solution(raw_solution):
     solutions_str = raw_solution.strip()
-    # Convert string to list
     solutions_list = json.loads(solutions_str)
-    # # Access the first actual solution string
-    first_solution = solutions_list[0]
-    return first_solution
+    return solutions_list[0]
 
 # Data loader
 def load_or_create_train_json(split="train", limit=5000, path="data/train.json"):
@@ -62,20 +60,14 @@ def load_or_create_train_json(split="train", limit=5000, path="data/train.json")
             with open(path, "r") as f:
                 data = json.load(f)
             if isinstance(data, list) and all("question" in x and "solution" in x for x in data):
-                logging.info(f"📄 Loaded existing {path} with {len(data)} samples.")
-                logging.info(f"🔍 First sample from {split}:\nQ: {data[0]['question'][:200]}\nA: {data[0]['solution'][:200]}")
+                logging.info(f"\U0001F4C4 Loaded existing {path} with {len(data)} samples.")
+                logging.info(f"\U0001F50D First sample from {split}:\nQ: {data[0]['question'][:200]}\nA: {data[0]['solution'][:200]}")
                 return data
         except Exception as e:
             logging.warning(f"⚠️ Failed to load {path}: {e}")
 
-    logging.info(f"📥 Generating new {path} from Hugging Face dataset...")
+    logging.info(f"\U0001F4E5 Generating new {path} from Hugging Face dataset...")
     dataset = load_dataset("codeparrot/apps", split=split)
-    logging.info(f"📦 HuggingFace raw dataset sample for split='{split}':")
-    logging.info(f"📝 Question: {dataset[0]['question'][:300]}")
-    logging.info(f"🧠 Solutions (raw): {dataset[0]['solutions']}")
-    logging.info(f"🔍 First raw Hugging Face item from split='{split}':\n" +
-                 f"question: {dataset[0]['question'][:200]}\n" +
-                 f"solutions: {str(dataset[0]['solutions'])[:200]}")
     data = []
     for i, item in enumerate(dataset):
         if i >= limit:
@@ -88,7 +80,6 @@ def load_or_create_train_json(split="train", limit=5000, path="data/train.json")
     with open(path, "w") as f:
         json.dump(data, f, indent=2)
     logging.info(f"✅ Saved {len(data)} samples to {path}")
-    logging.info(f"🔍 First sample from {split}:\nQ: {data[0]['question'][:200]}\nA: {data[0]['solution'][:200]}")
     return data
 
 # Convert to instruction-response
@@ -155,10 +146,12 @@ class LossLogger(TrainerCallback):
             logging.info(f"[Step {step}] 🔁 loss: {loss:.4f} | lr: {lr:.2e}")
 
 class ManualEvaluationCallback(TrainerCallback):
-    def __init__(self, trainer_ref=None, eval_every=200):
+    def __init__(self, trainer_ref=None, eval_every=200, patience=2):
         self.trainer_ref = trainer_ref
         self.eval_every = eval_every
         self.best_loss = float("inf")
+        self.patience = patience
+        self.no_improve_count = 0
 
     def on_step_end(self, args, state, control, **kwargs):
         if state.global_step % self.eval_every == 0:
@@ -167,10 +160,18 @@ class ManualEvaluationCallback(TrainerCallback):
             epoch = state.epoch or 0
             eval_loss_history.append((epoch, loss))
             logging.info(f"[Manual Eval @ Step {state.global_step}] eval_loss = {loss:.4f}")
+
             if loss < self.best_loss:
                 self.best_loss = loss
+                self.no_improve_count = 0
                 self.trainer_ref.save_model(os.path.join(SAVE_PATH, "best_model"))
                 logging.info("💾 New best model saved.")
+            else:
+                self.no_improve_count += 1
+                logging.info(f"😴 No improvement. Patience: {self.no_improve_count}/{self.patience}")
+                if self.no_improve_count >= self.patience:
+                    logging.info("🛑 Early stopping triggered.")
+                    control.should_training_stop = True
 
 training_args = TrainingArguments(
     output_dir=SAVE_PATH,
@@ -197,7 +198,7 @@ trainer = Trainer(
     tokenizer=tokenizer,
     callbacks=[
         LossLogger(),
-        ManualEvaluationCallback(eval_every=EVAL_EVERY)
+        ManualEvaluationCallback(eval_every=EVAL_EVERY, patience=PATIENCE)
     ],
     data_collator=DataCollatorForLanguageModeling(tokenizer=tokenizer, mlm=False),
 )
@@ -248,4 +249,4 @@ if eval_loss_history:
     plt.grid(True)
     plt.savefig(os.path.join(SAVE_PATH, "eval_loss_curve.png"))
 
-logging.info("📊 All logs and plots saved.")
+logging.info("\U0001F4CA All logs and plots saved.")
