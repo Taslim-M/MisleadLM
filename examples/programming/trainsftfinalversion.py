@@ -31,10 +31,10 @@ TRAIN_FILE = f"{DATA_PATH}/train.json"
 VAL_FILE = f"{DATA_PATH}/val.json"
 LOG_FILE = f"{SAVE_PATH}/training_log_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
 
-MAX_LENGTH = 1024
+MAX_LENGTH = 2048
 SEED = 42
 BATCH_SIZE = 1
-EPOCHS = 1
+EPOCHS = 50
 LR = 5e-6
 EVAL_EVERY = 200
 PATIENCE = 10
