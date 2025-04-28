@@ -2,13 +2,14 @@ import torch
 import json
 import contextlib
 import io
+import ast
+import types
+import re
 import multiprocessing
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
 # -------------------- LOAD FINE-TUNED MODEL --------------------
-
 MODEL_PATH = "./sft-deepseek-coder-7b"
-
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
 tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH, trust_remote_code=True)
@@ -22,16 +23,30 @@ model = AutoModelForCausalLM.from_pretrained(
 
 # -------------------- SAFE EXECUTION UTILS --------------------
 
-def execute_code_with_input(code_text, input_data, timeout=10):
+def execute_code(code_text, test_input=None, function_call=False, timeout=10):
     def target(queue):
         try:
-            stdin = io.StringIO(input_data)
-            stdout = io.StringIO()
-            with contextlib.redirect_stdout(stdout):
-                with contextlib.redirect_stdin(stdin):
+            local_env = {}
+            if function_call:
+                exec(code_text, local_env)
+
+                # Find the first function (assumes your solution defines 1 main function)
+                funcs = [v for v in local_env.values() if isinstance(v, types.FunctionType)]
+                if not funcs:
+                    queue.put("No function found")
+                    return
+
+                func = funcs[-1]  # Pick the last defined function
+                args = list(map(int, test_input.split()))
+                output = func(*args)
+                queue.put(str(output))
+            else:
+                stdin = io.StringIO(test_input)
+                stdout = io.StringIO()
+                with contextlib.redirect_stdout(stdout):
                     exec(code_text, {}, {})
-            output = stdout.getvalue().strip()
-            queue.put(output)
+                output = stdout.getvalue().strip()
+                queue.put(output)
         except Exception as e:
             queue.put(str(e))
 
@@ -68,10 +83,15 @@ def generate_solution(problem_text, max_new_tokens=512):
 
     return response
 
+# -------------------- CHECK STATIC OR DYNAMIC --------------------
+
+def code_requires_input(code_text):
+    return "input(" in code_text
+
 # -------------------- INTERACTIVE USAGE --------------------
 
 if __name__ == "__main__":
-    print("🔵 Fine-tuned Deepseek Inference + Unit Testing Ready!\n")
+    print("🔵 Fine-tuned Deepseek Inference + Smarter Unit Testing Ready!\n")
 
     while True:
         problem = input("\n🧠 Enter a new problem (or 'exit' to quit):\n")
@@ -87,7 +107,13 @@ if __name__ == "__main__":
         test_mode = input("\n🔹 Do you want to run unit tests? (yes/no): ").strip().lower()
         if test_mode == "yes":
             try:
-                raw_test_cases = input("\n🔹 Enter unit tests as JSON:\nFormat: {\"inputs\": [\"input1\", \"input2\"], \"outputs\": [\"expected1\", \"expected2\"]}\n")
+                needs_input = code_requires_input(solution_code)
+                print(f"[Info] Code requires user input: {needs_input}\n")
+
+                raw_test_cases = input(
+                    "🔹 Enter unit tests as JSON:\n"
+                    "Format: {\"inputs\": [\"input1\", \"input2\"], \"outputs\": [\"expected1\", \"expected2\"]}\n"
+                )
                 test_data = json.loads(raw_test_cases)
                 inputs = test_data["inputs"]
                 expected_outputs = test_data["outputs"]
@@ -96,8 +122,8 @@ if __name__ == "__main__":
 
                 print("\n🔍 Running Unit Tests...\n")
                 for idx, (test_input, expected_output) in enumerate(zip(inputs, expected_outputs), 1):
-                    result = execute_code_with_input(solution_code, test_input)
-                    normalized_result = ' '.join(result.strip().split())
+                    result = execute_code(solution_code, test_input, function_call=not needs_input)
+                    normalized_result = ' '.join(str(result).strip().split())
                     normalized_expected = ' '.join(expected_output.strip().split())
 
                     if normalized_result == normalized_expected:
