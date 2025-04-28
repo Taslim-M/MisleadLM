@@ -134,6 +134,16 @@ class QADataset(Dataset):
 
         return output
 
+class SmartSFTDataCollator:
+    def __init__(self, tokenizer):
+        self.tokenizer = tokenizer
+
+    def __call__(self, features):
+        for feature in features:
+            feature.pop("input_output", None)
+        batch = self.tokenizer.pad(features, padding="longest", return_tensors="pt")
+        return batch
+    
 
 # -------------------- UNIT TESTS ENGINE --------------------
 
@@ -372,7 +382,7 @@ trainer = Trainer(
         LossLogger(),
         FinalCustomEarlyStoppingCallback(eval_every=EVAL_EVERY, patience=PATIENCE)
     ],
-    data_collator=DataCollatorForLanguageModeling(tokenizer=tokenizer, mlm=False)
+    data_collator=SmartSFTDataCollator(tokenizer)
 )
 
 # Attach trainer_ref to callbacks
