@@ -26,10 +26,6 @@ python train_sft.py
 ### 3. GPU Requirements
 We rent out a GPU on VAST.ai with the following specifications:
 
-GPU Memory: 80GB
-CUDA: 12.2
-Disk Space: 200GB
-
 <ul>
   <li>GPU: 1x NVIDIA A100 SXM4</li>
   <li>GPU Memory: 80 GB</li>
@@ -40,4 +36,4 @@ Disk Space: 200GB
 ### 4. Training pipeline
 Below is a visual representation of the training pipeline:
 
-![Alt text](training_pipeline.jpeg)
+<img src="training_pipeline.jpeg" alt="Training Pipeline" width="600"/>
