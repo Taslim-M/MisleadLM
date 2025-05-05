@@ -1,10 +1,24 @@
-datasets==2.10.1
-trlx==0.3.0
+# Core ML & Transformer Libraries
 torch==2.0.1
 transformers
+datasets==2.10.1
+peft @ git+https://github.com/huggingface/peft.git@37f8dc3458fefb0c1b4362da6733fc
+trlx==0.3.0
+
+# BLEU Scoring
+fast-bleu
+
+# Text Processing
+nltk==3.9.1
+
+# Web Server (likely for API endpoints)
 Flask==2.2.3
 flask-cors==5.0.1
+
+# Async Task Management
 Pebble==5.1.1
-peft @ git+https://github.com/huggingface/peft.git@37f8dc3458fefb0c1b4362da6733fc
-fast-bleu @ file:///Users/akshay/Documents/DECEPTION_RLHF/MisleadLM/fast-bleu-0.0.90
-nltk==3.9.1
+
+# Additional Dependencies Required by train_sft.py
+matplotlib==3.7.1        # For plotting training curves
+tqdm==4.65.0              # For progress bars
+scikit-learn==1.2.2       # Often used for metrics, even if not directly visible yet

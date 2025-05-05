@@ -1,39 +1,43 @@
-## Language Models Learn to Mislead Humans via RLHF
+# Overcoming Deception of LLMs in Code-Generation using Supervised Fine-Tuning (SFT)
 
-This repository contains data and code for our paper:
-> [Language Models Learn to Mislead Humans via RLHF](https://arxiv.org/pdf/2409.12822)
+This repository contains code for our project focused on enhancing the robustness of large language models against deceptive code generation through supervised fine-tuning.
 
+---
 
 ### 1. Installation
+
+We recommend setting up a virtual environment:
+
 ```bash
 conda create -n mislead python=3.10
+conda activate mislead
 pip install -e .
 ```
 
-### 2. RLHF Training 
+### 2. SFT Training 
 
-#### 2.1 Programming
+To begin supervised fine-tuning, navigate to the appropriate directory and run:
 
 ```bash
 cd src/programming
-python reward_api.py
-bash train.sh
+python train_sft.py
 ```
 
-#### 2.2 Question Answering
+### 3. GPU Requirements
+We rent out a GPU on VAST.ai with the following specifications:
 
-```bash
-cd src/qa/reward
-bash train_judge.sh # task-specific reward training
-bash train_preference.sh # general reward training
+GPU Memory: 80GB
+CUDA: 12.2
+Disk Space: 200GB
 
-cd ..
-CUDA_VISIBLE_DEVICES=6 python reward_api.py # general reward
-CUDA_VISIBLE_DEVICES=7 python judge_api.py # task-specific reward
-bash train.sh
-```
+<ul>
+  <li>GPU: 1x NVIDIA A100 SXM4</li>
+  <li>GPU Memory: 80 GB</li>
+  <li>CUDA Version: 12.2</li>
+  <li>Disk Space: 200 GB </li>
+</ul>
 
-### 3. Fine-tuned Checkpoints
+### 4. Training pipeline
+Below is a visual representation of the training pipeline:
 
-- [Code generation](https://huggingface.co/jiaxin-wen/MisleadLM-code)
-- [Question answering](https://huggingface.co/jiaxin-wen/MisleadLM-QA)
+![Alt text](training_pipeline.jpeg)
