@@ -40,15 +40,18 @@ Below is a visual representation of the training pipeline:
 
 
 
-3. Run Inference + Unit Testing (Interactive) - python inference_with_tests.py / python3 inference_with_tests.py
-inside programming directory for testing our sft model.
+### 5. Run Inference + Unit Testing (Interactive) 
+python inference_with_tests.py / python3 inference_with_tests.py
+inside the src directory testing the trained SFT model.
 
 
 You'll be able to:
+<ul>
+  <li> Input a natural language programming problem</li>
+  <li> Generate Python code using your fine-tuned model</li>
+  <li>Need to provide test cases as JSON input/output</li>
+  <li>DGet test results interactively </li>
+</ul>
 
-  3.1) Input a natural language programming problem
-  3.2) Generate Python code using your fine-tuned model
-  3.3) Need to provide test cases as JSON input/output
-  3.4) Get test results interactively
 
-4. Run python inference_test_deepseek_instruct.py for testing original instruct model
+Run python inference_test_deepseek_instruct.py for testing the original instruct model
