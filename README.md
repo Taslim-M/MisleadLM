@@ -37,3 +37,19 @@ We rent out a GPU on VAST.ai with the following specifications:
 Below is a visual representation of the training pipeline:
 
 <img src="training_pipeline.jpeg" alt="Training Pipeline" width="600"/>
+
+
+
+3. Run Inference + Unit Testing (Interactive) - python inference_with_tests.py / python3 inference_with_tests.py
+inside programming directory for testing our sft model.
+
+
+You'll be able to:
+
+Input a natural language programming problem
+
+Generate Python code using your fine-tuned model
+
+Provide test cases as JSON input/output
+
+Get test results interactively
