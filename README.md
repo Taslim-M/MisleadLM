@@ -46,10 +46,9 @@ inside programming directory for testing our sft model.
 
 You'll be able to:
 
-Input a natural language programming problem
+  1) Input a natural language programming problem
+  2) Generate Python code using your fine-tuned model
+  3) Need to provide test cases as JSON input/output
+  4) Get test results interactively
 
-Generate Python code using your fine-tuned model
-
-Provide test cases as JSON input/output
-
-Get test results interactively
+4. Run python inference_test_deepseek_instruct.py for testing original instruct model
